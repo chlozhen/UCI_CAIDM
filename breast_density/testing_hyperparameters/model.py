@@ -20,11 +20,11 @@ from jarvis.utils.general import gpus, tools as jtools, overload
 # =======================================================
 # FUNCTIONS
 # =======================================================
-@overload(Client)
-def preprocess(self, arrays, **kwargs):
-    arrays['ys']['lbl'] *= 2.5
-    arrays['ys']['lbl'] = arrays['ys']['lbl'].clip(max=1.0)
-    return arrays
+# @overload(Client)
+# def preprocess(self, arrays, **kwargs):
+#     arrays['ys']['lbl'] *= 2.5
+#     arrays['ys']['lbl'] = arrays['ys']['lbl'].clip(max=1.0)
+#     return arrays
 
 def get_lr_metric(optimizer):
         def lr(y_true, y_pred):
@@ -46,7 +46,7 @@ def write_results(result, path, p):
         'mse loss': result.history['mean_squared_error'],
         'mae val_loss': result.history['val_loss'],
         'mse val_loss': result.history['val_mean_squared_error'],
-        'params': p['output_dir']
+        'logs': p['output_dir']
     }    
     # --- Save *.csv file
     df = pd.DataFrame(df)
@@ -76,7 +76,7 @@ def prepare_callback(path, p):
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=10, mode='auto')
 #     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.000001)
     reduce_lr = LearningRateScheduler(lr_scheduler)
-    return [checkpoint_callback, reduce_lr, early_stopping]
+    return [checkpoint_callback, early_stopping, reduce_lr]
 
 def prepare_model(inputs, p):
     
@@ -138,7 +138,7 @@ if __name__ == '__main__':
     # GLOBALS
     # =======================================================
     TEST = False
-    hyparams = 'hyper_lrt_sched' #CHANGE EXPNAME
+    hyparams = 'TR2_noScale_batch_111520_1239' #CHANGE EXPNAME
     CLIENT_PROJECT_NAME = 'xr/breast-fgt'
     CSV_PATH = '/home/chloez/breast_density/model_perm/hyparams/{}.csv'.format(hyparams)
     WEIGHTS_PATH = '/home/chloez/breast_density/model_perm/weights/weights-{}'.format(hyparams)
@@ -154,9 +154,9 @@ if __name__ == '__main__':
         # =======================================================
         ROW_NUM = os.environ['JARVIS_PARAMS_ROW']
         p = params.load(CSV_PATH, row=ROW_NUM)
-        STEPS_PER_EPOCH = 500
-        VALIDATION_STEPS = 100
-        nepoch = 100
+        STEPS_PER_EPOCH = p['steps_per_epoch']
+        VALIDATION_STEPS = p['steps_per_epoch']
+        nepoch = 400
         
     # =======================================================
     # PREPARATION 
